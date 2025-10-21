@@ -14,36 +14,26 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import argparse
 from logging import getLogger
-import logging
-
-from app.generate_select import generate_select
-from app.database.engine import create_engine
-
-logging.basicConfig(level=logging.DEBUG)
+from sqlalchemy import URL
+from sqlalchemy.engine import create_engine as sql_alchemy_create_engine
 
 logger = getLogger(__name__)
-parser = argparse.ArgumentParser()
-
-parser.add_argument("-u", "--username", default="SA")
-parser.add_argument("-p", "--password", default="superSecret123!")
-parser.add_argument("-c", "--hostname", default="127.0.0.1")
-parser.add_argument("-d", "--database", default="Northwind")
 
 
-def main():
-    args = parser.parse_args()
+def create_engine(username: str, password: str, hostname: str, database: str):
+    connection_url = URL.create(
+        "mssql+pyodbc",
+        username=username,
+        password=password,
+        host=hostname,
+        port=1433,
+        database=database,
+        query={
+            "driver": "ODBC Driver 18 for SQL Server",
+            "TrustServerCertificate": "yes",
+        },
+    )
 
-    logger.info("Connecting to database.")
-
-    engine = create_engine(args.username, args.password, args.hostname, args.database)
-
-    with engine.connect() as connection:
-        generate_select([], connection)
-
-    logger.info("Finished.")
-
-
-if __name__ == "__main__":
-    main()
+    engine = sql_alchemy_create_engine(connection_url)
+    return engine

@@ -14,36 +14,34 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import argparse
-from logging import getLogger
-import logging
-
-from app.generate_select import generate_select
+from dataclasses import dataclass
 from app.database.engine import create_engine
-
-logging.basicConfig(level=logging.DEBUG)
-
-logger = getLogger(__name__)
-parser = argparse.ArgumentParser()
-
-parser.add_argument("-u", "--username", default="SA")
-parser.add_argument("-p", "--password", default="superSecret123!")
-parser.add_argument("-c", "--hostname", default="127.0.0.1")
-parser.add_argument("-d", "--database", default="Northwind")
+from app.generate_select import generate_select
 
 
-def main():
-    args = parser.parse_args()
+@dataclass
+class DatabaseConfig:
+    username: str
+    password: str
+    hostname: str
+    database: str
 
-    logger.info("Connecting to database.")
 
-    engine = create_engine(args.username, args.password, args.hostname, args.database)
+test_db = DatabaseConfig("SA", "superSecret123!", "127.0.0.1", "Northwind")
+
+
+def test_generate_select_with_one_table():
+    engine = create_engine(
+        test_db.username, test_db.password, test_db.hostname, test_db.database
+    )
 
     with engine.connect() as connection:
-        generate_select([], connection)
+        actual = generate_select(["Region"], connection)
 
-    logger.info("Finished.")
-
-
-if __name__ == "__main__":
-    main()
+    expected = """
+select
+    RegionID Region__RegionID,
+    RegionDescription Region__RegionDescription
+from Region;
+    """.strip()
+    assert actual == expected

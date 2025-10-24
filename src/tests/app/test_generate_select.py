@@ -40,8 +40,8 @@ def test_generate_select_with_one_table():
 
     expected = """
 select
-    RegionID Region__RegionID,
-    RegionDescription Region__RegionDescription
+RegionID Region__RegionID,
+RegionDescription Region__RegionDescription
 from Region;
     """.strip()
     assert actual == expected

@@ -18,6 +18,8 @@ import argparse
 from logging import getLogger
 import logging
 
+from app.database.database_config import DatabaseConfig
+from app.generate_inserts import generate_inserts
 from app.generate_select import generate_select
 from app.database.engine import create_engine
 
@@ -37,10 +39,17 @@ def main():
 
     logger.info("Connecting to database.")
 
-    engine = create_engine(args.username, args.password, args.hostname, args.database)
+    engine = create_engine(
+        DatabaseConfig(args.username, args.password, args.hostname, args.database)
+    )
 
     with engine.connect() as connection:
-        generate_select([], connection)
+        selects = generate_select([], connection)
+        inserts = generate_inserts(selects, connection)
+
+    logger.info("Writing insert statements to inserts.sql.")
+    with open("inserts.sql", "w") as file:
+        file.writelines(f"{statement}\n" for statement in inserts)
 
     logger.info("Finished.")
 

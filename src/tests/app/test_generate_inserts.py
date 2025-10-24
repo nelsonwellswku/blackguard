@@ -14,24 +14,32 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import pytest
 from app.database.database_config import DatabaseConfig
 from app.database.engine import create_engine
-from app.generate_select import generate_select
-
+from app.generate_inserts import generate_inserts
 
 test_db = DatabaseConfig("SA", "superSecret123!", "127.0.0.1", "Northwind")
 
 
-def test_generate_select_with_one_table():
+@pytest.mark.only
+def test_generate_inserts_for_a_single_table():
     engine = create_engine(test_db)
 
-    with engine.connect() as connection:
-        actual = generate_select(["Region"], connection)
-
-    expected = """
+    select = """
 select
 Region.RegionID Region__RegionID,
 Region.RegionDescription Region__RegionDescription
 from Region;
-    """.strip()
-    assert actual == expected
+"""
+
+    with engine.connect() as connection:
+        inserts = generate_inserts(select, connection)
+
+    assert inserts
+    assert inserts == [
+        "insert into Region (RegionID, RegionDescription) VALUES (1, 'Eastern')",
+        "insert into Region (RegionID, RegionDescription) VALUES (2, 'Western')",
+        "insert into Region (RegionID, RegionDescription) VALUES (3, 'Northern')",
+        "insert into Region (RegionID, RegionDescription) VALUES (4, 'Southern')",
+    ]

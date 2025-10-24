@@ -14,24 +14,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from app.database.database_config import DatabaseConfig
-from app.database.engine import create_engine
-from app.generate_select import generate_select
+from dataclasses import dataclass
 
 
-test_db = DatabaseConfig("SA", "superSecret123!", "127.0.0.1", "Northwind")
-
-
-def test_generate_select_with_one_table():
-    engine = create_engine(test_db)
-
-    with engine.connect() as connection:
-        actual = generate_select(["Region"], connection)
-
-    expected = """
-select
-Region.RegionID Region__RegionID,
-Region.RegionDescription Region__RegionDescription
-from Region;
-    """.strip()
-    assert actual == expected
+@dataclass
+class DatabaseConfig:
+    username: str
+    password: str
+    hostname: str
+    database: str

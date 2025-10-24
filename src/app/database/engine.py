@@ -18,17 +18,19 @@ from logging import getLogger
 from sqlalchemy import URL
 from sqlalchemy.engine import create_engine as sql_alchemy_create_engine
 
+from app.database.database_config import DatabaseConfig
+
 logger = getLogger(__name__)
 
 
-def create_engine(username: str, password: str, hostname: str, database: str):
+def create_engine(database_config: DatabaseConfig):
     connection_url = URL.create(
         "mssql+pyodbc",
-        username=username,
-        password=password,
-        host=hostname,
+        username=database_config.username,
+        password=database_config.password,
+        host=database_config.hostname,
         port=1433,
-        database=database,
+        database=database_config.database,
         query={
             "driver": "ODBC Driver 18 for SQL Server",
             "TrustServerCertificate": "yes",
